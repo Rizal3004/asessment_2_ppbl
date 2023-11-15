@@ -1,114 +1,42 @@
 import 'package:flutter/material.dart';
+import 'helper.dart';
 
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wireframe',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: HomePage(),
-    );
-  }
-}
-
-class HomePage extends StatefulWidget {
-  @override
-  _HomePageState createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  TextEditingController viewPertamaController = TextEditingController();
-  TextEditingController viewKeduaController = TextEditingController();
-  TextEditingController viewKetigaController = TextEditingController();
-  bool switchValue = false;
-
-  String Nama = '';
-  String Nopolisi = '';
-
-  void publishData() {
-    setState(() {
-      Nama = viewPertamaController.text;
-      Nopolisi = viewKeduaController.text;
-
-      // NIM dan Nama dapat ditambahkan sesuai dengan informasi pribadi Anda
-    });
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SecondPage(
-          Nama: Nama,
-          Nopolisi: Nopolisi,
-        ),
-      ),
-    );
-  }
+class AddDriverPage extends StatelessWidget {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _nopolController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tambah Ojek'),
+        title: Text('Tambah Tukang Ojek'),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              controller: viewPertamaController,
-              decoration: InputDecoration(
-                labelText: 'Nama',
-              ),
+              controller: _nameController,
+              decoration: InputDecoration(labelText: 'Nama'),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 10),
             TextField(
-              controller: viewKeduaController,
-              decoration: InputDecoration(
-                labelText: 'Nopolisi',
-              ),
+              controller: _nopolController,
+              decoration: InputDecoration(labelText: 'Nomor Polisi'),
             ),
-            SizedBox(height: 16.0),
+            SizedBox(height: 20),
             ElevatedButton(
-              onPressed: publishData,
-              child: Text('PUBLIKASIKAN'),
+              onPressed: () async {
+                String name = _nameController.text;
+                String nopol = _nopolController.text;
+
+                await DatabaseHelper().insertTukangOjek(name, nopol);
+
+                Navigator.pop(context);
+              },
+              child: Text('Simpan'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SecondPage extends StatelessWidget {
-  final String Nama;
-  final String Nopolisi;
-
-  SecondPage({
-    required this.Nama,
-    required this.Nopolisi,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Tukang Ojek'),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Nama: $Nama'),
-            SizedBox(height: 8.0),
-            Text('Nopolisi: $Nopolisi'),
-            SizedBox(height: 8.0),
           ],
         ),
       ),
