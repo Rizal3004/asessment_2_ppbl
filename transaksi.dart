@@ -1,51 +1,78 @@
 import 'package:flutter/material.dart';
+import 'helper.dart';
 
-/// Flutter code sample for [DropdownMenu].
+class AddTransactionPage extends StatefulWidget {
+  @override
+  _AddTransactionPageState createState() => _AddTransactionPageState();
+}
 
-const List<String> list = <String>['Bojongsoang', 'Baleendah', 'Cimahi', 'Pasteur'];
+class _AddTransactionPageState extends State<AddTransactionPage> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+  int? driverId;
+  TextEditingController _amountController = TextEditingController();
 
-void main() => runApp(const DropdownMenuApp());
+  List<DropdownMenuItem<int>>? _dropdownItems;
 
-class DropdownMenuApp extends StatelessWidget {
-  const DropdownMenuApp({super.key});
+  @override
+  void initState() {
+    super.initState();
+    _loadDriverData();
+  }
+
+  Future<void> _loadDriverData() async {
+    List<Map<String, dynamic>> drivers = await _dbHelper.getTukangOjekStats(sortField: 'nama');
+    setState(() {
+      _dropdownItems = drivers.map((driver) {
+        return DropdownMenuItem<int>(
+          value: driver['id'],
+          child: Text(driver['nama']),
+        );
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(useMaterial3: true),
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Tambah Transaksi')),
-        body: const Center(
-          child: DropdownMenu(),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Tambah Transaksi'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            DropdownButtonFormField<int>(
+              value: driverId,
+              onChanged: (int? newValue) {
+                setState(() {
+                  driverId = newValue;
+                });
+              },
+              items: _dropdownItems,
+              decoration: InputDecoration(labelText: 'Pilih Tukang Ojek'),
+            ),
+            SizedBox(height: 16.0),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(labelText: 'Jumlah Harga'),
+            ),
+            SizedBox(height: 16.0),
+            ElevatedButton(
+              onPressed: () async {
+                if (driverId != null) {
+                  int amount = int.tryParse(_amountController.text) ?? 0;
+                  await _dbHelper.insertTransaksi(driverId!, amount);
+                  Navigator.pop(context); // Kembali ke halaman sebelumnya setelah menambahkan transaksi
+                }
+              },
+              child: Text('Tambah Transaksi'),
+            ),
+          ],
         ),
       ),
-    );
-  }
-}
-
-class DropdownMenu extends StatefulWidget {
-  const DropdownMenu({super.key});
-
-  @override
-  State<DropdownMenu> createState() => _DropdownMenuState();
-}
-
-class _DropdownMenuState extends State<DropdownMenu> {
-  String dropdownValue = list.first;
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownMenu<String>(
-      initialSelection: list.first,
-      onSelected: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      dropdownMenuEntries: list.map<DropdownMenuEntry<String>>((String value) {
-        return DropdownMenuEntry<String>(value: value, label: value);
-      }).toList(),
     );
   }
 }
